@@ -40,7 +40,8 @@ source("../R/plotmeanSE.R")
 ## ----ResponseAccSPRLK1data,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE----
 dat<-read.table("../data/E1SPRlevykellerExp1.txt",header=T)
 #datModel = read.csv("../../recursive-prd/output/E1SPRlevykellerExp1.txt_7092426", sep="\t")
-datModel = read.csv("../../recursive-prd/output/E1SPRlevykellerExp1.txt_wiki-german-nospaces-bptt-WHITESPACE-39149757", sep="\t")
+#datModel = read.csv("../../recursive-prd/output/E1SPRlevykellerExp1.txt_wiki-german-nospaces-bptt-WHITESPACE-39149757", sep="\t")
+datModel = read.csv("../../recursive-prd/output/E1SPRlevykellerExp1.txt_657350374", sep="\t")
 
 dat$LineNumber = (1:nrow(dat)) - 1
 dat = merge(dat, datModel, by=c("LineNumber"))
@@ -183,8 +184,20 @@ SPRE2_res<-round(stan_results(m=SPRE2,params=pars))
 ## ----E5ResponseAccdata,include=FALSE,cache=FALSE,echo=FALSE,warning=FALSE----
 dat<-read.table("../data/E5SPRlevykellerExp12.txt",header=T)
 #datModel = read.csv("../../recursive-prd/output/E5SPRlevykellerExp12.txt_7092426", sep="\t")
-datModel = read.csv("../../recursive-prd/output/E5SPRlevykellerExp12.txt_wiki-german-nospaces-bptt-WHITESPACE-39149757", sep="\t")
 
+models = c(
+710899603,
+553555034,
+657350374,
+887261094,
+459934402)
+
+datModel = data.frame()
+for(model in models) {
+    datModel2 = read.csv(paste("../../recursive-prd/output/E5SPRlevykellerExp12.txt_", model, sep=""), sep="\t")
+    datModel2$Model = model
+    datModel = rbind(datModel, datModel2)
+}
 dat$LineNumber = (1:nrow(dat)) - 1
 dat = merge(dat, datModel, by=c("LineNumber"))
 dat = dat[!grepl("OOV", dat$RegionLSTM),]
@@ -246,6 +259,13 @@ E5spr$int<-ifelse(E5spr$cond%in%c("a","d"),-1/2,1/2)
 verb<-subset(E5spr,region=="verb")
 verb1<-subset(E5spr,region=="verb1")
 
+summary(lmer(Surprisal ~ 1+load+dist+int+(1+load+dist+int|item)+(1+load+dist+int|Model), data=verb)) # small evidence for effect of distance (also in the character-based model)
+
+library(brms)
+
+model = brm(Surprisal ~ 1+load+dist+int+(1+load+dist+int|item)+(1+load+dist+int|Model), data=verb)
+
+summary(model)
 
 
 
